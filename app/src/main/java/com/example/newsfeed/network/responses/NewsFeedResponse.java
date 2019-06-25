@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-public class Response {
+public class NewsFeedResponse {
 
     @SerializedName("status")
     @Expose
@@ -107,4 +107,5 @@ public class Response {
     public void setNews(List<News> news) {
         this.news = news;
     }
+
 }

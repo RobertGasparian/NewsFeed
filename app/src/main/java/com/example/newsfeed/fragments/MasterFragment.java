@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.newsfeed.R;
@@ -41,6 +42,7 @@ public class MasterFragment extends BaseFragment {
     @Override
     protected void setupViews() {
         adapter = new NewsFeedAdapter();
+        newsFeedRV.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
     @Override

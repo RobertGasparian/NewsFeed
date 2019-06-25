@@ -5,6 +5,7 @@ import androidx.paging.DataSource;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
@@ -17,16 +18,16 @@ public interface NewsDAO {
 
     //INSERT, UPDATE, DELETE
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     public void insertNews(News...news);
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     public void insertNews(List<News> news);
 
-    @Update
+    @Update(onConflict = OnConflictStrategy.IGNORE)
     public void updateNews(News...news);
 
-    @Update
+    @Update(onConflict = OnConflictStrategy.IGNORE)
     public void updateNews(List<News> news);
 
     @Delete
@@ -37,6 +38,6 @@ public interface NewsDAO {
 
     //QUERIES
 
-    @Query("SELECT * FROM news_feed")
+    @Query("SELECT * FROM news_feed ORDER BY is_favorite ASC, web_publication_date ASC")
     public DataSource.Factory<Integer, News> getNewsFeed();
 }

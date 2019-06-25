@@ -13,5 +13,6 @@ public class NewsFeedApp extends Application {
     public void onCreate() {
         super.onCreate();
         Repository.getInstance().setDatabase(Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "news_feed_database").build());
+        Repository.getInstance().populateNewsFeed();
     }
 }

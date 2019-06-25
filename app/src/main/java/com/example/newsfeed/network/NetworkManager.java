@@ -13,9 +13,7 @@ public class NetworkManager {
 
     public static ApiService getApiService() {
         if (retrofit==null) {
-            OkHttpClient client = new OkHttpClient();
-            client.interceptors().add(new ApiKeyInterceptor());
-
+            OkHttpClient client = new OkHttpClient.Builder().addInterceptor(new ApiKeyInterceptor()).build();
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
                     .client(client)

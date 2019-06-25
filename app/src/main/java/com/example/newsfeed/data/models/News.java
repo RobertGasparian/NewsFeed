@@ -54,6 +54,8 @@ public class News {
     @SerializedName("pillarName")
     @Expose
     private String pillarName;
+    @ColumnInfo(name = "is_favorite")
+    private boolean isFavorite = false;
 
     public String getId() {
         return id;
@@ -109,6 +111,38 @@ public class News {
 
     public void setApiUrl(String apiUrl) {
         this.apiUrl = apiUrl;
+    }
+
+    public boolean isHosted() {
+        return isHosted;
+    }
+
+    public void setHosted(boolean hosted) {
+        isHosted = hosted;
+    }
+
+    public String getPillarId() {
+        return pillarId;
+    }
+
+    public void setPillarId(String pillarId) {
+        this.pillarId = pillarId;
+    }
+
+    public String getPillarName() {
+        return pillarName;
+    }
+
+    public void setPillarName(String pillarName) {
+        this.pillarName = pillarName;
+    }
+
+    public boolean isFavorite() {
+        return isFavorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        isFavorite = favorite;
     }
 
     @Override
