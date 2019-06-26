@@ -6,8 +6,15 @@ import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.example.newsfeed.utils.Utils;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 
 @Entity(tableName = "news_feed_table")
@@ -87,6 +94,17 @@ public class News {
 
     public String getWebPublicationDate() {
         return webPublicationDate;
+    }
+
+    public String getFormattedDate() {
+        try {
+            Date date = Utils.toCalendar(webPublicationDate).getTime();
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-mmm-yyyy hh:mm", Locale.getDefault());
+            return dateFormat.format(date);
+        } catch (ParseException e) {
+            return webPublicationDate;
+        }
     }
 
     public void setWebPublicationDate(String webPublicationDate) {

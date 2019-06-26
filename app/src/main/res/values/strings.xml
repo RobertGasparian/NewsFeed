@@ -5,4 +5,6 @@
     <string name="no_connection_error_message">An error occurred. Please check your internet connection.</string>
     <string name="ok">OK</string>
     <string name="pinned_news_label">Pinned News</string>
+    <string name="linear_menu_item">Linear</string>
+    <string name="grid_menu_item">Grid</string>
 </resources>

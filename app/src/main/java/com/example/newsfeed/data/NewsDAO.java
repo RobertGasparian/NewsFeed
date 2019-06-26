@@ -1,6 +1,7 @@
 package com.example.newsfeed.data;
 
 
+import androidx.lifecycle.LiveData;
 import androidx.paging.DataSource;
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -40,9 +41,12 @@ public interface NewsDAO {
 
     //QUERIES
 
-    @Query("SELECT * FROM news_feed_table WHERE is_pinned = 0 ORDER BY web_publication_date ASC")
+    @Query("SELECT * FROM news_feed_table WHERE is_pinned = 0 ORDER BY web_publication_date DESC")
     public DataSource.Factory<Integer, News> getNewsFeed();
 
-    @Query("SELECT * FROM news_feed_table WHERE is_pinned = 1 ORDER BY web_publication_date ASC")
+    @Query("SELECT * FROM news_feed_table WHERE is_pinned = 1 ORDER BY web_publication_date DESC")
     public DataSource.Factory<Integer, News> getPinnedNews();
+
+    @Query("SELECT * FROM news_feed_table WHERE id = :id")
+    public LiveData<News> getNewsById(String id);
 }

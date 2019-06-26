@@ -1,8 +1,10 @@
 package com.example.newsfeed.activities;
 
 import android.os.Bundle;
+import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.ViewCompat;
 
 import com.example.newsfeed.R;
 import com.example.newsfeed.fragments.MasterFragment;
@@ -30,6 +32,16 @@ public class MainActivity extends AppCompatActivity implements FragmentChangeLis
     public void change(BaseFragment fragment) {
         fragment.setChangeListener(this);
         getSupportFragmentManager().beginTransaction()
+                .replace(R.id.root_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void changeWithSharedElement(BaseFragment fragment, ImageView imageView) {
+        fragment.setChangeListener(this);
+        getSupportFragmentManager().beginTransaction()
+                .addSharedElement(imageView, ViewCompat.getTransitionName(imageView))
                 .replace(R.id.root_container, fragment)
                 .addToBackStack(null)
                 .commit();

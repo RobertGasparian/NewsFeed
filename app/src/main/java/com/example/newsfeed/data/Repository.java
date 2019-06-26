@@ -72,4 +72,8 @@ public class Repository {
             }
         });
     }
+
+    public LiveData<News> getNewsById(String id) {
+        return database.getNewsDAO().getNewsById(id);
+    }
 }
