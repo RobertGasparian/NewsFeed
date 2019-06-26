@@ -7,4 +7,6 @@
     <string name="pinned_news_label">Pinned News</string>
     <string name="linear_menu_item">Linear</string>
     <string name="grid_menu_item">Grid</string>
+    <string name="no_body_message">Sorry, there is no detailed content for this article</string>
+    <string name="pin_menu_title">Pin</string>
 </resources>

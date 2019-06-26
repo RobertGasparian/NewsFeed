@@ -24,6 +24,8 @@ import com.example.newsfeed.R;
 import com.example.newsfeed.adapters.NewsFeedAdapter;
 import com.example.newsfeed.adapters.NewsItemClickListener;
 import com.example.newsfeed.adapters.PinnedAdapter;
+import com.example.newsfeed.adapters.rvutils.LayoutMode;
+import com.example.newsfeed.data.Repository;
 import com.example.newsfeed.data.models.News;
 import com.example.newsfeed.fragments.base.BaseFragment;
 import com.example.newsfeed.viewmodels.MasterViewModel;
@@ -55,10 +57,12 @@ public class MasterFragment extends BaseFragment implements NewsItemClickListene
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.linear:
+                Repository.getInstance().setLayoutMode(getContext(), LayoutMode.LINEAR);
                 newsFeedRV.setLayoutManager(new GridLayoutManager(getContext(), 1));
                 newsFeedAdapter.notifyItemRangeChanged(0, newsFeedAdapter.getItemCount());
                 break;
             case R.id.grid:
+                Repository.getInstance().setLayoutMode(getContext(), LayoutMode.GRID);
                 newsFeedRV.setLayoutManager(new GridLayoutManager(getContext(), 2));
                 newsFeedAdapter.notifyItemRangeChanged(0, newsFeedAdapter.getItemCount());
                 break;
@@ -77,7 +81,16 @@ public class MasterFragment extends BaseFragment implements NewsItemClickListene
     protected void setupViews() {
         newsFeedAdapter = new NewsFeedAdapter();
         newsFeedAdapter.setNewsItemClickListener(this);
-        newsFeedRV.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        String mode = Repository.getInstance().getLayoutMode(getContext());
+        GridLayoutManager manager;
+        if (mode.equals(LayoutMode.LINEAR.name())) {
+            manager = new GridLayoutManager(getContext(), 1);
+        } else if (mode.equals(LayoutMode.GRID.name())) {
+            manager = new GridLayoutManager(getContext(), 2);
+        } else {
+            manager = new GridLayoutManager(getContext(), 1);
+        }
+        newsFeedRV.setLayoutManager(manager);
         pinnedAdapter = new PinnedAdapter();
         pinnedAdapter.setNewsItemClickListener(this);
         pinnedRv.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));

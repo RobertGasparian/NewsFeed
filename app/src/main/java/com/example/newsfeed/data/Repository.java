@@ -1,10 +1,16 @@
 package com.example.newsfeed.data;
 
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
 import androidx.lifecycle.LiveData;
 import androidx.paging.LivePagedListBuilder;
 import androidx.paging.PagedList;
 
+import com.example.newsfeed.adapters.NewsFeedAdapter;
+import com.example.newsfeed.adapters.rvutils.LayoutMode;
 import com.example.newsfeed.data.models.Fields;
 import com.example.newsfeed.data.models.News;
 import com.example.newsfeed.network.ApiService;
@@ -19,6 +25,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class Repository {
+
+    static private final String LAYOUT_MODE_KEY = "layout_mode_key";
 
     private ApiService apiService;
 
@@ -75,5 +83,17 @@ public class Repository {
 
     public LiveData<News> getNewsById(String id) {
         return database.getNewsDAO().getNewsById(id);
+    }
+
+    public String getLayoutMode(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        return prefs.getString(LAYOUT_MODE_KEY, LayoutMode.LINEAR.name());
+    }
+
+    public void setLayoutMode(Context context, LayoutMode mode) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(LAYOUT_MODE_KEY, mode.name());
+        editor.apply();
     }
 }

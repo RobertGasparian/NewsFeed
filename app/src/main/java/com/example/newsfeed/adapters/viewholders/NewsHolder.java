@@ -28,7 +28,7 @@ public class NewsHolder extends RecyclerView.ViewHolder {
         titleTv.setText(news.getWebTitle());
         dateTv.setText(news.getFormattedDate());
         Glide.with(itemView.getContext())
-                .load(news.getFields().getThumbnail())
+                .load(news.getFields() != null ? news.getFields().getThumbnail(): null)
                 .into(imageIv);
 
         ViewCompat.setTransitionName(imageIv, news.getId());

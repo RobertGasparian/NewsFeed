@@ -8,11 +8,19 @@ public class Fields {
     @SerializedName("thumbnail")
     @Expose
     private String thumbnail;
+    @SerializedName("body")
+    @Expose
+    private String body;
 
     public Fields() {}
 
     public Fields(String thumbnail) {
         this.thumbnail = thumbnail;
+    }
+
+    public Fields(String thumbnail, String body) {
+        this.thumbnail = thumbnail;
+        this.body = body;
     }
 
     public String getThumbnail() {
@@ -23,4 +31,11 @@ public class Fields {
         this.thumbnail = thumbnail;
     }
 
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
 }

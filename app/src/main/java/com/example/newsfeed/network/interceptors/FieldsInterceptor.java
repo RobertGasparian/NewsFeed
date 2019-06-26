@@ -9,7 +9,7 @@ import okhttp3.Response;
 
 public class FieldsInterceptor implements Interceptor {
 
-    private static final String FIELDS = "thumbnail";
+    private static final String FIELDS = "thumbnail,body";
 
     @Override
     public Response intercept(Chain chain) throws IOException {
