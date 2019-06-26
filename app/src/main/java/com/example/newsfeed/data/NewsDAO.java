@@ -9,6 +9,7 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
+import com.example.newsfeed.data.models.Fields;
 import com.example.newsfeed.data.models.News;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.List;
 public interface NewsDAO {
 
     //INSERT, UPDATE, DELETE
+    //News
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     public void insertNews(News...news);
@@ -38,6 +40,9 @@ public interface NewsDAO {
 
     //QUERIES
 
-    @Query("SELECT * FROM news_feed ORDER BY is_favorite ASC, web_publication_date ASC")
+    @Query("SELECT * FROM news_feed_table WHERE is_pinned = 0 ORDER BY web_publication_date ASC")
     public DataSource.Factory<Integer, News> getNewsFeed();
+
+    @Query("SELECT * FROM news_feed_table WHERE is_pinned = 1 ORDER BY web_publication_date ASC")
+    public DataSource.Factory<Integer, News> getPinnedNews();
 }

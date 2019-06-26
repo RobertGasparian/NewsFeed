@@ -5,11 +5,13 @@ import androidx.lifecycle.LiveData;
 import androidx.paging.LivePagedListBuilder;
 import androidx.paging.PagedList;
 
+import com.example.newsfeed.data.models.Fields;
 import com.example.newsfeed.data.models.News;
 import com.example.newsfeed.network.ApiService;
 import com.example.newsfeed.network.NetworkManager;
 import com.example.newsfeed.network.responses.SearchResponse;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -43,16 +45,20 @@ public class Repository {
         return new LivePagedListBuilder<>(database.getNewsDAO().getNewsFeed(), 10).build();
     }
 
+    public LiveData<PagedList<News>> getPinnedNews() {
+        return new LivePagedListBuilder<>(database.getNewsDAO().getPinnedNews(), 10).build();
+    }
+
     public void populateNewsFeed() {
         apiService.getFeedData(1).enqueue(new Callback<SearchResponse>() {
             @Override
             public void onResponse(Call<SearchResponse> call, Response<SearchResponse> response) {
                 if (response.isSuccessful()) {
-                    List<News> news = response.body().getResponse().getNews();
+                    List<News> newsList = response.body().getResponse().getNews();
                     new Thread() {
                         @Override
                         public void run() {
-                            database.getNewsDAO().insertNews(news);
+                            database.getNewsDAO().insertNews(newsList);
                         }
                     }.start();
                 } else {

@@ -13,6 +13,7 @@ import com.example.newsfeed.data.models.News;
 public class MasterViewModel extends AndroidViewModel {
 
     private LiveData<PagedList<News>> newsLD;
+    private LiveData<PagedList<News>> pinedLD;
 
     public MasterViewModel(@NonNull Application application) {
         super(application);
@@ -21,5 +22,10 @@ public class MasterViewModel extends AndroidViewModel {
     public LiveData<PagedList<News>> getNewsFeed() {
         newsLD = Repository.getInstance().getNewsFeed();
         return newsLD;
+    }
+
+    public LiveData<PagedList<News>> getPinnedNews() {
+        pinedLD = Repository.getInstance().getPinnedNews();
+        return pinedLD;
     }
 }

@@ -10,7 +10,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 
-@Entity(tableName = "news_feed")
+@Entity(tableName = "news_feed_table")
 public class News {
 
     @PrimaryKey
@@ -42,6 +42,10 @@ public class News {
     @SerializedName("apiUrl")
     @Expose
     private String apiUrl;
+    @ColumnInfo(name = "fields")
+    @SerializedName("fields")
+    @Expose
+    private Fields fields;
     @ColumnInfo(name = "is_hosted")
     @SerializedName("isHosted")
     @Expose
@@ -54,8 +58,8 @@ public class News {
     @SerializedName("pillarName")
     @Expose
     private String pillarName;
-    @ColumnInfo(name = "is_favorite")
-    private boolean isFavorite = false;
+    @ColumnInfo(name = "is_pinned")
+    private boolean isPinned = false;
 
     public String getId() {
         return id;
@@ -137,12 +141,20 @@ public class News {
         this.pillarName = pillarName;
     }
 
-    public boolean isFavorite() {
-        return isFavorite;
+    public boolean isPinned() {
+        return isPinned;
     }
 
-    public void setFavorite(boolean favorite) {
-        isFavorite = favorite;
+    public void setPinned(boolean pinned) {
+        isPinned = pinned;
+    }
+
+    public Fields getFields() {
+        return fields;
+    }
+
+    public void setFields(Fields fields) {
+        this.fields = fields;
     }
 
     @Override

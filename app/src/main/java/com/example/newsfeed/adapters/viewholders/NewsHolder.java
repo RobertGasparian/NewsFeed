@@ -25,7 +25,7 @@ public class NewsHolder extends RecyclerView.ViewHolder {
     public void bind(News news) {
         titleTv.setText(news.getWebTitle());
         Glide.with(itemView.getContext())
-                .load(news.getWebUrl())
+                .load(news.getFields().getThumbnail())
                 .into(imageIv);
     }
 }

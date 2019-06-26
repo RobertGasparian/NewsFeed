@@ -1,6 +1,7 @@
 package com.example.newsfeed.network;
 
 import com.example.newsfeed.network.interceptors.ApiKeyInterceptor;
+import com.example.newsfeed.network.interceptors.FieldsInterceptor;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
@@ -13,7 +14,10 @@ public class NetworkManager {
 
     public static ApiService getApiService() {
         if (retrofit==null) {
-            OkHttpClient client = new OkHttpClient.Builder().addInterceptor(new ApiKeyInterceptor()).build();
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(new ApiKeyInterceptor())
+                    .addInterceptor(new FieldsInterceptor())
+                    .build();
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
                     .client(client)
