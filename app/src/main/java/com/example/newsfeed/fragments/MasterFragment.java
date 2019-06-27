@@ -2,7 +2,12 @@ package com.example.newsfeed.fragments;
 
 
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -21,16 +26,18 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.newsfeed.R;
+import com.example.newsfeed.adapters.LoadMoreListener;
 import com.example.newsfeed.adapters.NewsFeedAdapter;
 import com.example.newsfeed.adapters.NewsItemClickListener;
 import com.example.newsfeed.adapters.PinnedAdapter;
 import com.example.newsfeed.adapters.rvutils.LayoutMode;
+import com.example.newsfeed.broadcasts.AlarmBroadcastReceiver;
 import com.example.newsfeed.data.Repository;
 import com.example.newsfeed.data.models.News;
 import com.example.newsfeed.fragments.base.BaseFragment;
 import com.example.newsfeed.viewmodels.MasterViewModel;
 
-public class MasterFragment extends BaseFragment implements NewsItemClickListener {
+public class MasterFragment extends BaseFragment implements NewsItemClickListener, LoadMoreListener {
 
     private RecyclerView newsFeedRV, pinnedRv;
     private TextView pinnedLabelTv;
@@ -70,10 +77,18 @@ public class MasterFragment extends BaseFragment implements NewsItemClickListene
         return super.onOptionsItemSelected(item);
     }
 
+    private void createAlarmManager() {
+        AlarmManager manager = (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(getContext().getApplicationContext(), AlarmBroadcastReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getContext().getApplicationContext(), 0, intent, 0);
+        manager.setRepeating(AlarmManager.ELAPSED_REALTIME, System.currentTimeMillis(), 3000, pendingIntent);
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         setHasOptionsMenu(true);
+        createAlarmManager();
         return inflater.inflate(R.layout.fragment_master, container, false);
     }
 
@@ -81,6 +96,7 @@ public class MasterFragment extends BaseFragment implements NewsItemClickListene
     protected void setupViews() {
         newsFeedAdapter = new NewsFeedAdapter();
         newsFeedAdapter.setNewsItemClickListener(this);
+        newsFeedAdapter.setLoadListener(this);
         String mode = Repository.getInstance().getLayoutMode(getContext());
         GridLayoutManager manager;
         if (mode.equals(LayoutMode.LINEAR.name())) {
@@ -121,6 +137,16 @@ public class MasterFragment extends BaseFragment implements NewsItemClickListene
                 pinnedRv.setVisibility(View.GONE);
             }
         });
+        model.getOldestNews().observe(this, news -> {
+            if (news != null) {
+                Log.d("news_checker", "date: " + news.getFormattedDate() + " - " + news.getWebTitle());
+                newsFeedAdapter.setOldestItemId(news.getId());
+            }
+
+        });
+        model.getNewsCount().observe(this, count -> {
+            Log.d("count_checker", "count: " + count);
+        });
     }
 
     @Override
@@ -131,5 +157,13 @@ public class MasterFragment extends BaseFragment implements NewsItemClickListene
     @Override
     public void onNewsItemClick(int position, News news, ImageView image) {
         changeListener.changeWithSharedElement(DetailFragment.newInstance(news.getId(), ViewCompat.getTransitionName(image)), image);
+    }
+
+    @Override
+    public void onLoadMore(int position) {
+        if (model != null) {
+            int dbCount = position + 1;
+            model.loadMore(dbCount);
+        }
     }
 }

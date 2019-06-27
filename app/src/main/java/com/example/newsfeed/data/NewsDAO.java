@@ -21,32 +21,44 @@ public interface NewsDAO {
     //INSERT, UPDATE, DELETE
     //News
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    public void insertNews(News...news);
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertNews(News...news);
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    public void insertNews(List<News> news);
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertNews(List<News> news);
 
-    @Update(onConflict = OnConflictStrategy.IGNORE)
-    public void updateNews(News...news);
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    void updateNews(News...news);
 
-    @Update(onConflict = OnConflictStrategy.IGNORE)
-    public void updateNews(List<News> news);
-
-    @Delete
-    public void deleteNews(News...news);
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    void updateNews(List<News> news);
 
     @Delete
-    public void deleteNews(List<News> news);
+    void deleteNews(News...news);
+
+    @Delete
+    void deleteNews(List<News> news);
 
     //QUERIES
 
-    @Query("SELECT * FROM news_feed_table WHERE is_pinned = 0 ORDER BY web_publication_date DESC")
-    public DataSource.Factory<Integer, News> getNewsFeed();
+    @Query("SELECT * FROM news_feed_table ORDER BY web_publication_date DESC")
+    DataSource.Factory<Integer, News> getNewsFeed();
 
     @Query("SELECT * FROM news_feed_table WHERE is_pinned = 1 ORDER BY web_publication_date DESC")
-    public DataSource.Factory<Integer, News> getPinnedNews();
+    DataSource.Factory<Integer, News> getPinnedNews();
 
     @Query("SELECT * FROM news_feed_table WHERE id = :id")
-    public LiveData<News> getNewsById(String id);
+    LiveData<News> getNewsById(String id);
+
+    @Query("SELECT * FROM news_feed_table ORDER BY web_publication_date ASC LIMIT 1")
+    LiveData<News> getOldestNews();
+
+    @Query("SELECT * FROM news_feed_table ORDER BY web_publication_date DESC LIMIT 1")
+    News getNewestNews();
+
+    @Query("SELECT COUNT(id) FROM news_feed_table")
+    LiveData<Integer> getNewsCount();
+
+    @Query("SELECT COUNT(id) FROM news_feed_table")
+    Integer getNewsCountTest();
 }

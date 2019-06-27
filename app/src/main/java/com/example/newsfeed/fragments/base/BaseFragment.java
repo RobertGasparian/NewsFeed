@@ -9,8 +9,13 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import com.example.newsfeed.R;
+import com.example.newsfeed.eventbus.ErrorEvent;
 import com.example.newsfeed.fragments.dialogs.LoadingDialogFragment;
 import com.example.newsfeed.utils.Utils;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 public abstract class BaseFragment extends Fragment {
 
@@ -25,8 +30,20 @@ public abstract class BaseFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         findViews(view);
         setupViews();
-        setupClicks();
         bindModel();
+        setupClicks();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
     }
 
     private void setupLoadingDialog() {
@@ -91,6 +108,10 @@ public abstract class BaseFragment extends Fragment {
 
     protected abstract void setupClicks();
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(ErrorEvent event) {
+        showErrorDialog(event.getMsg());
+    }
 
 }
 

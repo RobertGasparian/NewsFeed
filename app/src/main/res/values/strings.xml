@@ -9,4 +9,8 @@
     <string name="grid_menu_item">Grid</string>
     <string name="no_body_message">Sorry, there is no detailed content for this article</string>
     <string name="pin_menu_title">Pin</string>
+    <string name="news_feed_label">News Feed</string>
+    <string name="feed_refresh_message">Please refresh your feed.</string>
+    <string name="fresh_news_title">Fresh news.</string>
+    <string name="service_title">Refreshing news feed.</string>
 </resources>

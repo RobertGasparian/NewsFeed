@@ -21,7 +21,10 @@ public class NewsFeedAdapter extends PagedListAdapter<News, NewsHolder> {
     private static final int LINEAR_TYPE = 0;
     private static final int GRID_TYPE = 1;
 
-    private NewsItemClickListener listener;
+    private NewsItemClickListener itemClickListener;
+    private LoadMoreListener loadListener;
+
+    private String oldestItemId;
 
     private RecyclerView recyclerView;
 
@@ -30,7 +33,16 @@ public class NewsFeedAdapter extends PagedListAdapter<News, NewsHolder> {
     }
 
     public void setNewsItemClickListener(NewsItemClickListener listener) {
-        this.listener = listener;
+        this.itemClickListener = listener;
+    }
+
+    public void setLoadListener(LoadMoreListener loadListener) {
+        this.loadListener = loadListener;
+    }
+
+    public void setOldestItemId(String oldestItemId) {
+        this.oldestItemId = oldestItemId;
+        //todo: check for loadmore
     }
 
     @Override
@@ -56,10 +68,13 @@ public class NewsFeedAdapter extends PagedListAdapter<News, NewsHolder> {
     public void onBindViewHolder(@NonNull NewsHolder holder, int position) {
         News news = getItem(position);
         if (news != null) {
+            if (oldestItemId != null && news.getId().equals(oldestItemId)) {
+                loadListener.onLoadMore(position);
+            }
             holder.bind(news);
-            if (listener != null) {
+            if (itemClickListener != null) {
                 holder.itemView.setOnClickListener(v -> {
-                    listener.onNewsItemClick(position, news, holder.getImageForAnimation());
+                    itemClickListener.onNewsItemClick(position, news, holder.getImageForAnimation());
                 });
             }
         } else {
@@ -67,10 +82,11 @@ public class NewsFeedAdapter extends PagedListAdapter<News, NewsHolder> {
         }
     }
 
+
+
     @Override
     public int getItemViewType(int position) {
-        return ((GridLayoutManager)recyclerView.getLayoutManager()).getSpanCount() == 1 ? LINEAR_TYPE: GRID_TYPE;
-    }
+        return ((GridLayoutManager)recyclerView.getLayoutManager()).getSpanCount() == 1 ? LINEAR_TYPE: GRID_TYPE;  }
 
     private static DiffUtil.ItemCallback<News> DIFF_CALLBACK =
             new DiffUtil.ItemCallback<News>() {

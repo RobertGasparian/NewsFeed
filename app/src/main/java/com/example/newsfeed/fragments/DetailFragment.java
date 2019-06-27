@@ -12,11 +12,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -55,8 +53,10 @@ public class DetailFragment extends BaseFragment {
         MenuItem checkboxItem = menu.findItem(R.id.pin_checkbox);
         FrameLayout checkboxLayout = (FrameLayout) checkboxItem.getActionView();
         checkBox = checkboxLayout.findViewById(R.id.checkbox);
-        checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            Toast.makeText(getContext(), ""+ isChecked, Toast.LENGTH_SHORT).show();
+        checkBox.setOnClickListener(v -> {
+            if (model != null) {
+                model.updatePinnedStatus();
+            }
         });
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -73,12 +73,6 @@ public class DetailFragment extends BaseFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         setHasOptionsMenu(true);
         return inflater.inflate(R.layout.fragment_detail, container, false);
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
     }
 
     @Override
@@ -102,6 +96,7 @@ public class DetailFragment extends BaseFragment {
         model.getDetailedNews(getArguments().getString(NEWS_ID_KEY)).observe(this, news -> {
             webTitleTv.setText(news.getWebTitle());
             dateTv.setText(news.getFormattedDate());
+            checkBox.setChecked(news.isPinned());
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 bodyTv.setText(Html.fromHtml(news.getFields() != null ? news.getFields().getBody() : getContext().getString(R.string.no_body_message), Html.FROM_HTML_MODE_COMPACT));
             } else {
@@ -113,6 +108,6 @@ public class DetailFragment extends BaseFragment {
 
     @Override
     protected void setupClicks() {
-
+        //no clickable views
     }
 }

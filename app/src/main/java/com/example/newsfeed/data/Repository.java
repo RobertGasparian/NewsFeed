@@ -4,6 +4,7 @@ package com.example.newsfeed.data;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.paging.LivePagedListBuilder;
@@ -13,9 +14,13 @@ import com.example.newsfeed.adapters.NewsFeedAdapter;
 import com.example.newsfeed.adapters.rvutils.LayoutMode;
 import com.example.newsfeed.data.models.Fields;
 import com.example.newsfeed.data.models.News;
+import com.example.newsfeed.eventbus.ErrorEvent;
 import com.example.newsfeed.network.ApiService;
 import com.example.newsfeed.network.NetworkManager;
 import com.example.newsfeed.network.responses.SearchResponse;
+import com.example.newsfeed.utils.AppExecutors;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,26 +68,25 @@ public class Repository {
             public void onResponse(Call<SearchResponse> call, Response<SearchResponse> response) {
                 if (response.isSuccessful()) {
                     List<News> newsList = response.body().getResponse().getNews();
-                    new Thread() {
-                        @Override
-                        public void run() {
-                            database.getNewsDAO().insertNews(newsList);
-                        }
-                    }.start();
+                    AppExecutors.getInstance().diskIO().execute(() -> database.getNewsDAO().insertNews(newsList));
                 } else {
-                    //todo handle error
+                    EventBus.getDefault().post(new ErrorEvent("Something went wrong with internet request."));
                 }
             }
 
             @Override
             public void onFailure(Call<SearchResponse> call, Throwable t) {
-                //todo handle failure
+                EventBus.getDefault().post(new ErrorEvent(t.getMessage()));
             }
         });
     }
 
     public LiveData<News> getNewsById(String id) {
         return database.getNewsDAO().getNewsById(id);
+    }
+
+    public void updateNews(News news) {
+        AppExecutors.getInstance().diskIO().execute(() -> database.getNewsDAO().updateNews(news));
     }
 
     public String getLayoutMode(Context context) {
@@ -95,5 +99,53 @@ public class Repository {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(LAYOUT_MODE_KEY, mode.name());
         editor.apply();
+    }
+
+    public News getNewestNews() {
+        return database.getNewsDAO().getNewestNews();
+    }
+
+    public LiveData<News> getOldestNews() {
+        return database.getNewsDAO().getOldestNews();
+    }
+
+    public LiveData<Integer> getNewsCount() {
+        return database.getNewsDAO().getNewsCount();
+    }
+
+    public void loadMore(int position) {
+        Log.d("page_checker", "" + ((position / 10) + 1));
+        apiService.getFeedData((position / 10) + 1).enqueue(new Callback<SearchResponse>() {
+            @Override
+            public void onResponse(Call<SearchResponse> call, Response<SearchResponse> response) {
+                if (response.isSuccessful()) {
+                    List<News> newsList = response.body().getResponse().getNews();
+
+                    AppExecutors.getInstance().diskIO().execute(() -> {
+                        Integer old = database.getNewsDAO().getNewsCountTest();
+                        Log.d("old_new_checker", "old - " + old);
+                        for (News news :
+                                newsList) {
+                            Log.d("id_checker", news.getId());
+                        }
+
+                        database.getNewsDAO().insertNews(newsList);
+                        Integer new1 = database.getNewsDAO().getNewsCountTest();
+                        Log.d("old_new_checker", "new - " + new1);
+                    });
+                } else {
+                    EventBus.getDefault().post(new ErrorEvent("Something went wrong with internet request."));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<SearchResponse> call, Throwable t) {
+                EventBus.getDefault().post(new ErrorEvent(t.getMessage()));
+            }
+        });
+    }
+
+    public void addFetchedData(List<News> news) {
+        AppExecutors.getInstance().diskIO().execute(() -> database.getNewsDAO().insertNews(news));
     }
 }
