@@ -2,10 +2,6 @@ package com.example.newsfeed.fragments;
 
 
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,11 +27,16 @@ import com.example.newsfeed.adapters.NewsFeedAdapter;
 import com.example.newsfeed.adapters.NewsItemClickListener;
 import com.example.newsfeed.adapters.PinnedAdapter;
 import com.example.newsfeed.adapters.rvutils.LayoutMode;
-import com.example.newsfeed.broadcasts.AlarmBroadcastReceiver;
 import com.example.newsfeed.data.Repository;
 import com.example.newsfeed.data.models.News;
+import com.example.newsfeed.eventbus.ChangeCountEvent;
+import com.example.newsfeed.eventbus.ReloadIfNeeded;
 import com.example.newsfeed.fragments.base.BaseFragment;
+import com.example.newsfeed.utils.AppExecutors;
 import com.example.newsfeed.viewmodels.MasterViewModel;
+
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 public class MasterFragment extends BaseFragment implements NewsItemClickListener, LoadMoreListener {
 
@@ -77,18 +78,10 @@ public class MasterFragment extends BaseFragment implements NewsItemClickListene
         return super.onOptionsItemSelected(item);
     }
 
-    private void createAlarmManager() {
-        AlarmManager manager = (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(getContext().getApplicationContext(), AlarmBroadcastReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(getContext().getApplicationContext(), 0, intent, 0);
-        manager.setRepeating(AlarmManager.ELAPSED_REALTIME, System.currentTimeMillis(), 3000, pendingIntent);
-    }
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         setHasOptionsMenu(true);
-        createAlarmManager();
         return inflater.inflate(R.layout.fragment_master, container, false);
     }
 
@@ -121,9 +114,13 @@ public class MasterFragment extends BaseFragment implements NewsItemClickListene
 
     @Override
     protected void bindModel() {
-        model = ViewModelProviders.of(this).get(MasterViewModel.class);
+        model = ViewModelProviders.of(getActivity()).get(MasterViewModel.class);
         model.getNewsFeed().observe(this, news -> {
             newsFeedAdapter.submitList(news);
+            AppExecutors.getInstance().diskIO().execute(() -> {
+                int count = model.getNewsCount();
+                AppExecutors.getInstance().mainThread().execute(() -> newsFeedAdapter.setDatabaseNewsCount(count));
+            });
             newsFeedRV.setAdapter(newsFeedAdapter);
         });
         model.getPinnedNews().observe(this, pinnedNews -> {
@@ -137,16 +134,7 @@ public class MasterFragment extends BaseFragment implements NewsItemClickListene
                 pinnedRv.setVisibility(View.GONE);
             }
         });
-        model.getOldestNews().observe(this, news -> {
-            if (news != null) {
-                Log.d("news_checker", "date: " + news.getFormattedDate() + " - " + news.getWebTitle());
-                newsFeedAdapter.setOldestItemId(news.getId());
-            }
 
-        });
-        model.getNewsCount().observe(this, count -> {
-            Log.d("count_checker", "count: " + count);
-        });
     }
 
     @Override
@@ -160,10 +148,28 @@ public class MasterFragment extends BaseFragment implements NewsItemClickListene
     }
 
     @Override
-    public void onLoadMore(int position) {
+    public void onLoadMore() {
         if (model != null) {
-            int dbCount = position + 1;
-            model.loadMore(dbCount);
+            AppExecutors.getInstance().diskIO().execute(() -> model.loadMore());
         }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(ChangeCountEvent event) {
+        if (newsFeedAdapter != null) {
+            newsFeedAdapter.setDatabaseNewsCount(event.getCount());
+        }
+    }
+
+
+    /**
+     * Executes only when app is launched first time (DB is empty).
+     * The reason is because when DB is empty and you observe LiveData, it does not trigger changes
+     * after data was added into DB, so I need to tell my UI to observe one more time when data stored.
+     * @param event
+     */
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(ReloadIfNeeded event) {
+        bindModel();
     }
 }

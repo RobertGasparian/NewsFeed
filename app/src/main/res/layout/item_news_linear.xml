@@ -13,6 +13,7 @@
         app:cardUseCompatPadding="true">
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/normal_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -27,7 +28,7 @@
                 app:layout_constraintDimensionRatio="4:3"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                tools:srcCompat="@tools:sample/avatars" />
+                />
 
             <TextView
                 android:id="@+id/web_title_tv"
@@ -54,6 +55,20 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/image_iv" />
 
+
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <RelativeLayout
+            android:id="@+id/placeholder_layout"
+            android:visibility="invisible"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ProgressBar
+                android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+        </RelativeLayout>
     </androidx.cardview.widget.CardView>
 </RelativeLayout>

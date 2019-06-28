@@ -10,10 +10,9 @@ import androidx.lifecycle.LiveData;
 import androidx.paging.LivePagedListBuilder;
 import androidx.paging.PagedList;
 
-import com.example.newsfeed.adapters.NewsFeedAdapter;
 import com.example.newsfeed.adapters.rvutils.LayoutMode;
-import com.example.newsfeed.data.models.Fields;
 import com.example.newsfeed.data.models.News;
+import com.example.newsfeed.eventbus.ChangeCountEvent;
 import com.example.newsfeed.eventbus.ErrorEvent;
 import com.example.newsfeed.network.ApiService;
 import com.example.newsfeed.network.NetworkManager;
@@ -22,7 +21,6 @@ import com.example.newsfeed.utils.AppExecutors;
 
 import org.greenrobot.eventbus.EventBus;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -55,11 +53,15 @@ public class Repository {
     }
 
     public LiveData<PagedList<News>> getNewsFeed() {
-        return new LivePagedListBuilder<>(database.getNewsDAO().getNewsFeed(), 10).build();
+        return new LivePagedListBuilder<>(database.getNewsDAO().getNewsFeed(), 10)
+                .setFetchExecutor(AppExecutors.getInstance().diskIO())
+                .build();
     }
 
     public LiveData<PagedList<News>> getPinnedNews() {
-        return new LivePagedListBuilder<>(database.getNewsDAO().getPinnedNews(), 10).build();
+        return new LivePagedListBuilder<>(database.getNewsDAO().getPinnedNews(), 10)
+                .setFetchExecutor(AppExecutors.getInstance().diskIO())
+                .build();
     }
 
     public void populateNewsFeed() {
@@ -109,29 +111,27 @@ public class Repository {
         return database.getNewsDAO().getOldestNews();
     }
 
-    public LiveData<Integer> getNewsCount() {
+    public int getNewsCount() {
         return database.getNewsDAO().getNewsCount();
     }
 
-    public void loadMore(int position) {
-        Log.d("page_checker", "" + ((position / 10) + 1));
-        apiService.getFeedData((position / 10) + 1).enqueue(new Callback<SearchResponse>() {
+    public void loadMore(int page) {
+        apiService.getFeedData(page).enqueue(new Callback<SearchResponse>() {
             @Override
             public void onResponse(Call<SearchResponse> call, Response<SearchResponse> response) {
                 if (response.isSuccessful()) {
                     List<News> newsList = response.body().getResponse().getNews();
 
                     AppExecutors.getInstance().diskIO().execute(() -> {
-                        Integer old = database.getNewsDAO().getNewsCountTest();
-                        Log.d("old_new_checker", "old - " + old);
-                        for (News news :
-                                newsList) {
-                            Log.d("id_checker", news.getId());
-                        }
-
+                        int oldCount = database.getNewsDAO().getNewsCount();
                         database.getNewsDAO().insertNews(newsList);
-                        Integer new1 = database.getNewsDAO().getNewsCountTest();
-                        Log.d("old_new_checker", "new - " + new1);
+                        int newCount = database.getNewsDAO().getNewsCount();
+                        if (oldCount == newCount) {
+                            int nextPage = page + 1;
+                            loadMore(nextPage);
+                        } else {
+                            EventBus.getDefault().post(new ChangeCountEvent(newCount));
+                        }
                     });
                 } else {
                     EventBus.getDefault().post(new ErrorEvent("Something went wrong with internet request."));
@@ -146,6 +146,6 @@ public class Repository {
     }
 
     public void addFetchedData(List<News> news) {
-        AppExecutors.getInstance().diskIO().execute(() -> database.getNewsDAO().insertNews(news));
+        database.getNewsDAO().insertNews(news);
     }
 }

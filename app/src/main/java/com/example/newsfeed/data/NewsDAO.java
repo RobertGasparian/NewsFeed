@@ -57,8 +57,5 @@ public interface NewsDAO {
     News getNewestNews();
 
     @Query("SELECT COUNT(id) FROM news_feed_table")
-    LiveData<Integer> getNewsCount();
-
-    @Query("SELECT COUNT(id) FROM news_feed_table")
-    Integer getNewsCountTest();
+    Integer getNewsCount();
 }

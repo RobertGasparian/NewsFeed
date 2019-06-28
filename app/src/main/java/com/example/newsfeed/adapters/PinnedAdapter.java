@@ -35,7 +35,7 @@ public class PinnedAdapter extends PagedListAdapter<News, NewsLinearHolder> {
     public void onBindViewHolder(@NonNull NewsLinearHolder holder, int position) {
         News news = getItem(position);
         if (news != null) {
-            holder.bind(news);
+            holder.bind(news, false);
             if (listener != null) {
                 holder.itemView.setOnClickListener(v -> {
                     listener.onNewsItemClick(position, news, holder.getImageForAnimation());
@@ -43,6 +43,7 @@ public class PinnedAdapter extends PagedListAdapter<News, NewsLinearHolder> {
             }
         } else {
             //placeholder
+            holder.bind(null, true);
         }
     }
 

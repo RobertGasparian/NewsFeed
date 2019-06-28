@@ -32,14 +32,8 @@ public class DetailViewModel extends AndroidViewModel {
         updateObserver = news -> {
             news.setPinned(!news.isPinned());
             Repository.getInstance().updateNews(news);
-            removeUpdateObs();
+            newsLD.removeObserver(updateObserver);
         };
         newsLD.observeForever(updateObserver);
-    }
-
-    private void removeUpdateObs() {
-        if (updateObserver != null && newsLD != null) {
-            newsLD.removeObserver(updateObserver);
-        }
     }
 }

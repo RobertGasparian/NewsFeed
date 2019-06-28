@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.paging.PagedListAdapter;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.newsfeed.R;
@@ -24,7 +25,7 @@ public class NewsFeedAdapter extends PagedListAdapter<News, NewsHolder> {
     private NewsItemClickListener itemClickListener;
     private LoadMoreListener loadListener;
 
-    private String oldestItemId;
+    private int databaseNewsCount;
 
     private RecyclerView recyclerView;
 
@@ -40,9 +41,13 @@ public class NewsFeedAdapter extends PagedListAdapter<News, NewsHolder> {
         this.loadListener = loadListener;
     }
 
-    public void setOldestItemId(String oldestItemId) {
-        this.oldestItemId = oldestItemId;
-        //todo: check for loadmore
+    public void setDatabaseNewsCount(int databaseNewsCount) {
+        this.databaseNewsCount = databaseNewsCount;
+        int firstItem = ((GridLayoutManager)recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
+        int lastItem = ((GridLayoutManager)recyclerView.getLayoutManager()).findLastVisibleItemPosition();
+        if (firstItem <= databaseNewsCount && lastItem >= databaseNewsCount) {
+            loadListener.onLoadMore();
+        }
     }
 
     @Override
@@ -68,10 +73,10 @@ public class NewsFeedAdapter extends PagedListAdapter<News, NewsHolder> {
     public void onBindViewHolder(@NonNull NewsHolder holder, int position) {
         News news = getItem(position);
         if (news != null) {
-            if (oldestItemId != null && news.getId().equals(oldestItemId)) {
-                loadListener.onLoadMore(position);
+            if ((position + 1) == databaseNewsCount) {
+                loadListener.onLoadMore();
             }
-            holder.bind(news);
+            holder.bind(news, false);
             if (itemClickListener != null) {
                 holder.itemView.setOnClickListener(v -> {
                     itemClickListener.onNewsItemClick(position, news, holder.getImageForAnimation());
@@ -79,6 +84,7 @@ public class NewsFeedAdapter extends PagedListAdapter<News, NewsHolder> {
             }
         } else {
             //placeholder
+            holder.bind(null, true);
         }
     }
 

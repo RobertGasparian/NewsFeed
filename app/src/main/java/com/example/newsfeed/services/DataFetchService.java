@@ -22,9 +22,12 @@ import com.example.newsfeed.activities.MainActivity;
 import com.example.newsfeed.data.AppDatabase;
 import com.example.newsfeed.data.Repository;
 import com.example.newsfeed.data.models.News;
+import com.example.newsfeed.eventbus.ReloadIfNeeded;
 import com.example.newsfeed.network.NetworkManager;
 import com.example.newsfeed.network.responses.SearchResponse;
 import com.example.newsfeed.utils.AppExecutors;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.List;
 
@@ -55,10 +58,9 @@ public class DataFetchService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d("service_checker", "start at: " + (System.currentTimeMillis()/1000));
         if (intent != null && intent.getAction() != null) {
             if (intent.getAction().equals(ACTION_FETCH)) {
-                fetchData();
+                fetchData(1);
             }
         } else {
             stopSelf();
@@ -103,42 +105,46 @@ public class DataFetchService extends Service {
         }
     }
 
-    private void fetchData() {
-        Log.d("service_checker", "fetch at: " + (System.currentTimeMillis()/1000));
-        NetworkManager.getApiService().getFeedData(1).enqueue(new Callback<SearchResponse>() {
+    private void fetchData(int page) {
+        NetworkManager.getApiService().getFeedData(page).enqueue(new Callback<SearchResponse>() {
             @Override
             public void onResponse(Call<SearchResponse> call, Response<SearchResponse> response) {
                 if (response.isSuccessful()) {
-                    Log.d("service_checker", "success at: " + (System.currentTimeMillis()/1000));
                     List<News> newsList = response.body().getResponse().getNews();
-                    Repository.getInstance().addFetchedData(newsList);
+                    AppExecutors.getInstance().diskIO().execute(() -> {
+                        int count = Repository.getInstance().getNewsCount();
+                        Repository.getInstance().addFetchedData(newsList);
+                        if (count == 0) {
+                            EventBus.getDefault().post(new ReloadIfNeeded());
+                        }
+                    });
                     boolean needToContinue = true;
-                    for (int i = 0; i < newsList.size(); i++) {
-                        if (i == 0 && !newsList.get(i).getId().equals(newestNews.getId())) {
-                            Log.d("service_checker", "freshNewsDetected at: " + (System.currentTimeMillis()/1000));
-                            freshNewsDetected();
+                    if (newestNews != null) {
+                        for (int i = 0; i < newsList.size(); i++) {
+
+                            if (i == 0 && !newsList.get(i).getId().equals(newestNews.getId())) {
+                                freshNewsDetected();
+                            }
+                            if (newsList.get(i).getId().equals(newestNews.getId())) {
+                                needToContinue = false;
+                                break;
+                            }
                         }
-                        if (newsList.get(i).getId().equals(newestNews.getId())) {
-                            needToContinue = false;
-                            break;
-                        }
+                    } else {
+                        needToContinue = false;
                     }
                     if (needToContinue) {
-                        Log.d("service_checker", "needAgain at: " + (System.currentTimeMillis()/1000));
-                        fetchData();
+                        fetchData(page + 1);
                     } else {
-                        Log.d("service_checker", "stopSelf at: " + (System.currentTimeMillis()/1000));
                         stopSelf();
                     }
                 } else {
-                    Log.d("service_checker", "error at: " + (System.currentTimeMillis()/1000));
                     stopSelf();
                 }
             }
 
             @Override
             public void onFailure(Call<SearchResponse> call, Throwable t) {
-                Log.d("service_checker", "failure at: " + (System.currentTimeMillis()/1000));
                 stopSelf();
             }
         });
@@ -146,7 +152,6 @@ public class DataFetchService extends Service {
 
     @Override
     public void onDestroy() {
-        Log.d("service_checker", "end at: " + (System.currentTimeMillis()/1000));
         AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(this, DataFetchService.class);
         intent.setAction(ACTION_FETCH);
