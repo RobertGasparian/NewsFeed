@@ -114,7 +114,7 @@ public class MasterFragment extends BaseFragment implements NewsItemClickListene
 
     @Override
     protected void bindModel() {
-        model = ViewModelProviders.of(getActivity()).get(MasterViewModel.class);
+        model = ViewModelProviders.of(this).get(MasterViewModel.class);
         model.getNewsFeed().observe(this, news -> {
             newsFeedAdapter.submitList(news);
             AppExecutors.getInstance().diskIO().execute(() -> {
